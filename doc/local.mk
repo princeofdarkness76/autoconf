@@ -19,6 +19,7 @@ AM_MAKEINFOFLAGS = --no-split
 TEXI2HTML_FLAGS = -split_chapter
 TEXINFO_TEX = build-aux/texinfo.tex
 
+<<<<<<< HEAD:doc/local.mk
 <<<<<<< HEAD:doc/Makefile.am
 info_TEXINFOS = autoconf.texi
 autoconf_TEXINFOS = fdl.texi install.texi
@@ -27,6 +28,11 @@ info_TEXINFOS = doc/autoconf.texi doc/standards.texi
 doc_autoconf_TEXINFOS = doc/fdl.texi doc/install.texi
 doc_standards_TEXINFOS = doc/fdl.texi doc/gnu-oids.texi doc/make-stds.texi
 >>>>>>> origin/master:doc/local.mk
+=======
+info_TEXINFOS = doc/autoconf.texi doc/standards.texi
+doc_autoconf_TEXINFOS = doc/fdl.texi doc/install.texi
+doc_standards_TEXINFOS = doc/fdl.texi doc/gnu-oids.texi doc/make-stds.texi
+>>>>>>> Distrotech/master:doc/local.mk
 
 EXTRA_DIST += doc/gendocs_template
 
