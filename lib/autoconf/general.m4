@@ -1,7 +1,7 @@
 # This file is part of Autoconf.                       -*- Autoconf -*-
 # Parameterized macros.
 m4_define([_AC_COPYRIGHT_YEARS], [
-Copyright (C) 1992-1996, 1998-2012 Free Software Foundation, Inc.
+Copyright (C) 1992-1996, 1998-2015 Free Software Foundation, Inc.
 ])
 
 # This file is part of Autoconf.  This program is free
@@ -586,6 +586,7 @@ AC_SUBST([datadir],        ['${datarootdir}'])dnl
 AC_SUBST([sysconfdir],     ['${prefix}/etc'])dnl
 AC_SUBST([sharedstatedir], ['${prefix}/com'])dnl
 AC_SUBST([localstatedir],  ['${prefix}/var'])dnl
+AC_SUBST([runstatedir],    ['${localstatedir}/run'])dnl
 AC_SUBST([includedir],     ['${prefix}/include'])dnl
 AC_SUBST([oldincludedir],  ['/usr/include'])dnl
 AC_SUBST([docdir],         [m4_ifset([AC_PACKAGE_TARNAME],
@@ -812,6 +813,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -921,7 +931,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -988,8 +998,8 @@ m4_define([_AC_INIT_PARSE_ENABLE2],
     ac_useropt=`expr "x$ac_option" : 'x-*$1-\(m4_if([$1], [$2], [[[^=]]], [.])*\)'`
     # Reject names that are not valid shell variable names.
     expr "x$ac_useropt" : "[.*[^-+._$as_cr_alnum]]" >/dev/null &&
-      AC_MSG_ERROR(
-	[invalid ]m4_if([$2], [with], [package], [feature])[ name: $ac_useropt])
+      AC_MSG_ERROR([invalid ]m4_if([$2], [with],
+        [package], [feature])[ name: `$ac_useropt'])
     ac_useropt_orig=$ac_useropt
     ac_useropt=`AS_ECHO(["$ac_useropt"]) | sed 's/[[-+.]]/_/g'`
     case $ac_user_opts in
@@ -1058,6 +1068,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1266,6 +1277,8 @@ AS_UNSET(ac_configure_args1)
 # WARNING: Use '\'' to represent an apostrophe within the trap.
 # WARNING: Do not start the trap code with a newline, due to a FreeBSD 4.0 bug.
 trap 'exit_status=$?
+  # Sanitize IFS.
+  IFS=" ""	$as_nl"
   # Save into config.log some information that might help in debugging.
   {
     echo
@@ -1454,7 +1467,7 @@ _AC_ENABLE_IF_ACTION([$1], m4_translit([$2], [-+.], [___]), [$3], [$4])
 m4_define([_AC_ENABLE_IF_ACTION],
 [m4_append_uniq([_AC_USER_OPTS], [$1_$2], [
 ])dnl
-AS_IF([test "${$1_$2+set}" = set], [$1val=$$1_$2; $3], [$4])dnl
+AS_IF([test ${$1_$2+y}], [$1val=$$1_$2; $3], [$4])dnl
 ])
 
 # AC_ARG_ENABLE(FEATURE, HELP-STRING, [ACTION-IF-TRUE], [ACTION-IF-FALSE])
@@ -1687,7 +1700,8 @@ AC_DEFUN([AC_CONFIG_AUX_DIR_DEFAULT],
 # do not automatically need to distribute the other auxiliary files.
 AC_DEFUN([AC_CONFIG_AUX_DIRS],
 [ac_aux_dir=
-for ac_dir in $1; do
+for ac_dir in $1
+do
   if test -f "$ac_dir/install-sh"; then
     ac_aux_dir=$ac_dir
     ac_install_sh="$ac_aux_dir/install-sh -c"
@@ -1725,11 +1739,47 @@ AC_PROVIDE([AC_CONFIG_AUX_DIR_DEFAULT])dnl
 ## ------------------------ ##
 
 
+# AC_CONFIG_MACRO_DIR_TRACE(DIR)
+# ------------------------------
+# This macro exists solely for tracing - never invoke it directly.
+# It will be called once per directory listed in either form of
+# AC_CONFIG_MACRO_DIR[S].
+m4_define([AC_CONFIG_MACRO_DIR_TRACE],
+[m4_fatal([Do not invoke $0 directly])])
+
+# _AC_CONFIG_MACRO_DIRS_USED
+# --------------------------
+# Internal witness macro, redefined to empty after first directory is traced.
+m4_define([_AC_CONFIG_MACRO_DIRS_USED], [-])
+
+# _AC_CONFIG_MACRO_DIRS(CALLER, DIR)
+# ----------------------------------
+# Internal workhorse macro to ensure a sane calling pattern of CALLER, and
+# eventually trace DIR through the documented public trace point.
+m4_define([_AC_CONFIG_MACRO_DIRS],
+[m4_if([$1], [-AC_CONFIG_MACRO_DIRS], [AC_CONFIG_MACRO_DIR([$2])],
+       [$1], [AC_CONFIG_MACRO_DIR], [m4_fatal([$1 can only be used once])],
+  [m4_define([$0_USED])m4_pushdef([AC_CONFIG_MACRO_DIR_TRACE])]]dnl
+[[AC_CONFIG_MACRO_DIR_TRACE([$2])m4_popdef([AC_CONFIG_MACRO_DIR_TRACE])])])
+
+# AC_CONFIG_MACRO_DIRS(DIR-1 [DIR-2 ... DIR-n])
+# --------------------------------------------
+# Declare directories containing additional macros for aclocal.
+# This macro can be called multiple times, and with multiple arguments.
+# Do not trace this macro; instead trace AC_CONFIG_MACRO_DIR_TRACE.
+# If no directory has been traced yet, then this macro also triggers
+# a trace of AC_CONFIG_MACRO_DIR on the first directory.
+AC_DEFUN([AC_CONFIG_MACRO_DIRS],
+[m4_map_args_w([$1], [_$0(_$0_USED()[$0], ], [)])])
+
 # AC_CONFIG_MACRO_DIR(DIR)
 # ------------------------
 # Declare directory containing additional macros for aclocal.
-AC_DEFUN([AC_CONFIG_MACRO_DIR], [])
-
+# This macro exists for backward compatibility; while tools can trace this,
+# we recommend tracing AC_CONFIG_MACRO_DIR_TRACE instead.  This macro can
+# only be used once, and must not be used after AC_CONFIG_MACRO_DIRS.
+AC_DEFUN([AC_CONFIG_MACRO_DIR],
+[_$0S(_$0S_USED()[$0], [$1])])
 
 
 ## --------------------- ##
@@ -1994,7 +2044,7 @@ _AC_CACHE_DUMP() |
      /^ac_cv_env_/b end
      t clear
      :clear
-     s/^\([^=]*\)=\(.*[{}].*\)$/test "${\1+set}" = set || &/
+     s/^\([^=]*\)=\(.*[{}].*\)$/test ${\1+y} || &/
      t end
      s/^\([^=]*\)=\(.*\)$/\1=${\1=\2}/
      :end'] >>confcache
@@ -2178,7 +2228,7 @@ m4_define([AC_SUBST],
   [m4_fatal([$0: `$1' is not a valid shell variable name])])]dnl
 [AC_SUBST_TRACE([$1])]dnl
 [m4_pattern_allow([^$1$])]dnl
-[m4_ifvaln([$2], [$1=$2])[]]dnl
+[m4_ifvaln([$2], [[$1]=$2])[]]dnl
 [m4_set_add([_AC_SUBST_VARS], [$1])])# AC_SUBST
 
 
@@ -2546,7 +2596,7 @@ dnl Quote $1 to prevent m4 from eating character classes
   $EGREP "[$1]" >/dev/null 2>&1],
   [$3],
   [$4])
-rm -f conftest*
+rm -rf conftest*
 ])# AC_EGREP_CPP
 
 
@@ -2729,7 +2779,7 @@ m4_define([_AC_RUN_IFELSE_BODY],
 AC_DEFUN([_AC_RUN_IFELSE],
 [AC_REQUIRE_SHELL_FN([ac_fn_]_AC_LANG_ABBREV[_try_run],
   [AS_FUNCTION_DESCRIBE([ac_fn_]_AC_LANG_ABBREV[_try_run], [LINENO],
-    [Try to link conftest.$ac_ext, and return whether this succeeded.
+    [Try to run conftest.$ac_ext, and return whether this succeeded.
      Assumes that executables *can* be run.])],
   [$0_BODY])]dnl
 [m4_ifvaln([$1], [AC_LANG_CONFTEST([$1])])]dnl
@@ -2814,15 +2864,72 @@ AC_DEFUN([AC_CHECK_FILES],
 ## ------------------------------- ##
 
 
+# _AC_UNDECLARED_WARNING
+# ----------------------
+# Set ac_[]_AC_LANG_ABBREV[]_decl_warn_flag=yes if the compiler uses a warning,
+# not a more-customary error, to report some undeclared identifiers.  Fail when
+# an affected compiler warns also on valid input.  _AC_PROG_PREPROC_WORKS_IFELSE
+# solves a related problem.
+AC_DEFUN([_AC_UNDECLARED_WARNING],
+[# The Clang compiler raises a warning for an undeclared identifier that matches
+# a compiler builtin function.  All extant Clang versions are affected, as of
+# Clang 3.6.0.  Test a builtin known to every version.  This problem affects the
+# C and Objective C languages, but Clang does report an error under C++ and
+# Objective C++.
+#
+# Passing -fno-builtin to the compiler would suppress this problem.  That
+# strategy would have the advantage of being insensitive to stray warnings, but
+# it would make tests less realistic.
+AC_CACHE_CHECK([how $[]_AC_CC[] reports undeclared, standard C functions],
+[ac_cv_[]_AC_LANG_ABBREV[]_decl_report],
+[AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [(void) strchr;])],
+  [AS_IF([test -s conftest.err], [dnl
+    # For AC_CHECK_DECL to react to warnings, the compiler must be silent on
+    # valid AC_CHECK_DECL input.  No library function is consistently available
+    # on freestanding implementations, so test against a dummy declaration.
+    # Include always-available headers on the off chance that they somehow
+    # elicit warnings.
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([dnl
+#include <float.h>
+#include <limits.h>
+#include <stdarg.h>
+#include <stddef.h>
+extern void ac_decl (int, char *);],
+[@%:@ifdef __cplusplus
+  (void) ac_decl ((int) 0, (char *) 0);
+  (void) ac_decl;
+@%:@else
+  (void) ac_decl;
+@%:@endif
+])],
+      [AS_IF([test -s conftest.err],
+	[AC_MSG_FAILURE([cannot detect from compiler exit status or warnings])],
+	[ac_cv_[]_AC_LANG_ABBREV[]_decl_report=warning])],
+      [AC_MSG_FAILURE([cannot compile a simple declaration test])])],
+    [AC_MSG_FAILURE([compiler does not report undeclared identifiers])])],
+  [ac_cv_[]_AC_LANG_ABBREV[]_decl_report=error])])
+
+case $ac_cv_[]_AC_LANG_ABBREV[]_decl_report in
+  warning) ac_[]_AC_LANG_ABBREV[]_decl_warn_flag=yes ;;
+  *) ac_[]_AC_LANG_ABBREV[]_decl_warn_flag= ;;
+esac
+])# _AC_UNDECLARED_WARNING
+
 # _AC_CHECK_DECL_BODY
 # -------------------
 # Shell function body for AC_CHECK_DECL.
 m4_define([_AC_CHECK_DECL_BODY],
 [  AS_LINENO_PUSH([$[]1])
+  # Initialize each $ac_[]_AC_LANG_ABBREV[]_decl_warn_flag once.
+  AC_DEFUN([_AC_UNDECLARED_WARNING_]_AC_LANG_ABBREV,
+	   [_AC_UNDECLARED_WARNING])dnl
+  AC_REQUIRE([_AC_UNDECLARED_WARNING_]_AC_LANG_ABBREV)dnl
   [as_decl_name=`echo $][2|sed 's/ *(.*//'`]
   [as_decl_use=`echo $][2|sed -e 's/(/((/' -e 's/)/) 0&/' -e 's/,/) 0& (/g'`]
   AC_CACHE_CHECK([whether $as_decl_name is declared], [$[]3],
-  [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([$[]4],
+  [ac_save_werror_flag=$ac_[]_AC_LANG_ABBREV[]_werror_flag
+  ac_[]_AC_LANG_ABBREV[]_werror_flag="$ac_[]_AC_LANG_ABBREV[]_decl_warn_flag$ac_[]_AC_LANG_ABBREV[]_werror_flag"
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([$[]4],
 [@%:@ifndef $[]as_decl_name
 @%:@ifdef __cplusplus
   (void) $[]as_decl_use;
@@ -2833,6 +2940,7 @@ m4_define([_AC_CHECK_DECL_BODY],
 ])],
 		   [AS_VAR_SET([$[]3], [yes])],
 		   [AS_VAR_SET([$[]3], [no])])])
+  ac_[]_AC_LANG_ABBREV[]_werror_flag=$ac_save_werror_flag
   AS_LINENO_POP
 ])# _AC_CHECK_DECL_BODY
 

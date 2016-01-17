@@ -1,6 +1,6 @@
 # This file is part of Autoconf.			-*- Autoconf -*-
 # Checking for functions.
-# Copyright (C) 2000-2012 Free Software Foundation, Inc.
+# Copyright (C) 2000-2015 Free Software Foundation, Inc.
 
 # This file is part of Autoconf.  This program is free
 # software; you can redistribute it and/or modify it under the
@@ -372,36 +372,34 @@ AC_CACHE_CHECK([for working alloca.h], ac_cv_working_alloca_h,
 		[ac_cv_working_alloca_h=no])])
 if test $ac_cv_working_alloca_h = yes; then
   AC_DEFINE(HAVE_ALLOCA_H, 1,
-	    [Define to 1 if you have <alloca.h> and it should be used
-	     (not on Ultrix).])
+	    [Define to 1 if <alloca.h> works.])
 fi
 
 AC_CACHE_CHECK([for alloca], ac_cv_func_alloca_works,
-[AC_LINK_IFELSE([AC_LANG_PROGRAM(
-[[#ifdef __GNUC__
-# define alloca __builtin_alloca
-#else
-# ifdef _MSC_VER
+[if test $ac_cv_working_alloca_h = yes; then
+  ac_cv_func_alloca_works=yes
+else
+  AC_LINK_IFELSE([AC_LANG_PROGRAM(
+[[#include <stdlib.h>
+#include <stddef.h>
+#ifndef alloca
+# ifdef __GNUC__
+#  define alloca __builtin_alloca
+# elif defined _MSC_VER
 #  include <malloc.h>
 #  define alloca _alloca
 # else
-#  ifdef HAVE_ALLOCA_H
-#   include <alloca.h>
-#  else
-#   ifdef _AIX
- #pragma alloca
-#   else
-#    ifndef alloca /* predefined by HP cc +Olibcalls */
-void *alloca (size_t);
-#    endif
-#   endif
+#  ifdef  __cplusplus
+extern "C"
 #  endif
+void *alloca (size_t);
 # endif
 #endif
 ]],                               [[char *p = (char *) alloca (1);
 				    if (p) return 0;]])],
 		[ac_cv_func_alloca_works=yes],
 		[ac_cv_func_alloca_works=no])])
+fi
 
 if test $ac_cv_func_alloca_works = yes; then
   AC_DEFINE(HAVE_ALLOCA, 1,
@@ -423,7 +421,7 @@ AU_ALIAS([AC_ALLOCA], [AC_FUNC_ALLOCA])
 AN_FUNCTION([chown], [AC_FUNC_CHOWN])
 AC_DEFUN([AC_FUNC_CHOWN],
 [AC_REQUIRE([AC_TYPE_UID_T])dnl
-AC_CHECK_HEADERS(unistd.h)
+AC_REQUIRE([AC_CANONICAL_HOST])dnl for cross-compiles
 AC_CACHE_CHECK([for working chown], ac_cv_func_chown_works,
 [AC_RUN_IFELSE([AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT
 #include <fcntl.h>
@@ -443,7 +441,12 @@ AC_CACHE_CHECK([for working chown], ac_cv_func_chown_works,
 ]])],
 	       [ac_cv_func_chown_works=yes],
 	       [ac_cv_func_chown_works=no],
-	       [ac_cv_func_chown_works=no])
+	       [case "$host_os" in # ((
+			  # Guess yes on glibc systems.
+		  *-gnu*) ac_cv_func_chown_works=yes ;;
+			  # If we don't know, assume the worst.
+		  *)      ac_cv_func_chown_works=no ;;
+		esac])
 rm -f conftest.chown
 ])
 if test $ac_cv_func_chown_works = yes; then
@@ -558,9 +561,8 @@ AC_DEFUN([_AC_LIBOBJ_FNMATCH],
 [AC_REQUIRE([AC_C_CONST])dnl
 AC_REQUIRE([AC_FUNC_ALLOCA])dnl
 AC_REQUIRE([AC_TYPE_MBSTATE_T])dnl
-AC_CHECK_DECLS([getenv])
-AC_CHECK_FUNCS([btowc mbsrtowcs mempcpy wmempcpy])
-AC_CHECK_HEADERS([wchar.h wctype.h])
+AC_CHECK_DECLS_ONCE([getenv])
+AC_CHECK_FUNCS_ONCE([btowc mbsrtowcs mempcpy wmempcpy])
 AC_LIBOBJ([fnmatch])
 AC_CONFIG_LINKS([$ac_config_libobj_dir/fnmatch.h:$ac_config_libobj_dir/fnmatch_.h])
 AC_DEFINE(fnmatch, rpl_fnmatch,
@@ -625,6 +627,7 @@ AN_FUNCTION([getgroups], [AC_FUNC_GETGROUPS])
 AC_DEFUN([AC_FUNC_GETGROUPS],
 [AC_REQUIRE([AC_TYPE_GETGROUPS])dnl
 AC_REQUIRE([AC_TYPE_SIZE_T])dnl
+AC_REQUIRE([AC_CANONICAL_HOST])dnl for cross-compiles
 AC_CHECK_FUNC(getgroups)
 
 # If we don't yet have getgroups, see if it's in -lbsd.
@@ -643,15 +646,22 @@ if test $ac_cv_func_getgroups = yes; then
        return getgroups (0, 0) == -1;]])],
 		  [ac_cv_func_getgroups_works=yes],
 		  [ac_cv_func_getgroups_works=no],
-		  [ac_cv_func_getgroups_works=no])
+		  [case "$host_os" in # ((
+			     # Guess yes on glibc systems.
+		     *-gnu*) ac_cv_func_getgroups_works="guessing yes" ;;
+			     # If we don't know, assume the worst.
+		     *)      ac_cv_func_getgroups_works="guessing no" ;;
+		   esac])
    ])
 else
   ac_cv_func_getgroups_works=no
 fi
-if test $ac_cv_func_getgroups_works = yes; then
-  AC_DEFINE(HAVE_GETGROUPS, 1,
-	    [Define to 1 if your system has a working `getgroups' function.])
-fi
+case "$ac_cv_func_getgroups_works" in
+  *yes)
+    AC_DEFINE(HAVE_GETGROUPS, 1,
+	      [Define to 1 if your system has a working `getgroups' function.])
+    ;;
+esac
 LIBS=$ac_save_LIBS
 ])# AC_FUNC_GETGROUPS
 
@@ -663,14 +673,12 @@ m4_define([_AC_LIBOBJ_GETLOADAVG],
 [AC_LIBOBJ(getloadavg)
 AC_DEFINE(C_GETLOADAVG, 1, [Define to 1 if using `getloadavg.c'.])
 # Figure out what our getloadavg.c needs.
+AC_CHECK_FUNCS_ONCE([setlocale])
 ac_have_func=no
 AC_CHECK_HEADER(sys/dg_sys_info.h,
 [ac_have_func=yes
  AC_DEFINE(DGUX, 1, [Define to 1 for DGUX with <sys/dg_sys_info.h>.])
  AC_CHECK_LIB(dgc, dg_sys_info)])
-
-AC_CHECK_HEADER(locale.h)
-AC_CHECK_FUNCS(setlocale)
 
 # We cannot check for <dwarf.h>, because Solaris 2 does not use dwarf (it
 # uses stabs), but it is still SVR4.  We cannot check for <elf.h> because
@@ -847,7 +855,8 @@ fi
 # calls lstat a second time when necessary.
 AN_FUNCTION([lstat], [AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK])
 AC_DEFUN([AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK],
-[AC_CACHE_CHECK(
+[AC_REQUIRE([AC_CANONICAL_HOST])dnl for cross-compiles
+AC_CACHE_CHECK(
        [whether lstat correctly handles trailing slash],
        [ac_cv_func_lstat_dereferences_slashed_symlink],
 [rm -f conftest.sym conftest.file
@@ -861,7 +870,12 @@ if test "$as_ln_s" = "ln -s" && ln -s conftest.file conftest.sym; then
      return lstat ("conftest.sym/", &sbuf) == 0;])],
 		[ac_cv_func_lstat_dereferences_slashed_symlink=yes],
 		[ac_cv_func_lstat_dereferences_slashed_symlink=no],
-		[ac_cv_func_lstat_dereferences_slashed_symlink=no])
+		[case "$host_os" in # ((
+			   # Guess yes on glibc systems.
+		   *-gnu*) ac_cv_func_lstat_dereferences_slashed_symlink=yes ;;
+			   # If we don't know, assume the worst.
+		   *)      ac_cv_func_lstat_dereferences_slashed_symlink=no ;;
+		 esac])
 else
   # If the `ln -s' command failed, then we probably don't even
   # have an lstat function.
@@ -885,21 +899,23 @@ fi
 # ------------------------------------
 # If `malloc (0)' properly handled, run IF-WORKS, otherwise, IF-NOT.
 AC_DEFUN([_AC_FUNC_MALLOC_IF],
-[AC_REQUIRE([AC_HEADER_STDC])dnl
-AC_CHECK_HEADERS(stdlib.h)
+[AC_REQUIRE([AC_CANONICAL_HOST])dnl for cross-compiles
 AC_CACHE_CHECK([for GNU libc compatible malloc], ac_cv_func_malloc_0_nonnull,
 [AC_RUN_IFELSE(
 [AC_LANG_PROGRAM(
-[[#if defined STDC_HEADERS || defined HAVE_STDLIB_H
-# include <stdlib.h>
-#else
-char *malloc ();
-#endif
+[[#include <stdlib.h>
 ]],
 		 [return ! malloc (0);])],
 	       [ac_cv_func_malloc_0_nonnull=yes],
 	       [ac_cv_func_malloc_0_nonnull=no],
-	       [ac_cv_func_malloc_0_nonnull=no])])
+	       [case "$host_os" in # ((
+		  # Guess yes on platforms where we know the result.
+		  *-gnu* | freebsd* | netbsd* | openbsd* | bitrig* \
+		  | hpux* | solaris* | cygwin* | mingw*)
+		    ac_cv_func_malloc_0_nonnull=yes ;;
+		  # If we don't know, assume the worst.
+		  *) ac_cv_func_malloc_0_nonnull=no ;;
+		esac])])
 AS_IF([test $ac_cv_func_malloc_0_nonnull = yes], [$1], [$2])
 ])# _AC_FUNC_MALLOC_IF
 
@@ -985,21 +1001,14 @@ test $ac_cv_func_memcmp_working = no && AC_LIBOBJ([memcmp])
 # --------------
 AN_FUNCTION([mktime], [AC_FUNC_MKTIME])
 AC_DEFUN([AC_FUNC_MKTIME],
-[AC_REQUIRE([AC_HEADER_TIME])dnl
-AC_CHECK_HEADERS_ONCE(sys/time.h unistd.h)
-AC_CHECK_FUNCS_ONCE(alarm)
+[AC_CHECK_HEADERS_ONCE([sys/time.h unistd.h])
+AC_CHECK_FUNCS_ONCE([alarm])
 AC_CACHE_CHECK([for working mktime], ac_cv_func_working_mktime,
 [AC_RUN_IFELSE([AC_LANG_SOURCE(
 [[/* Test program from Paul Eggert and Tony Leneis.  */
-#ifdef TIME_WITH_SYS_TIME
+#include <time.h>
+#ifdef HAVE_SYS_TIME_H
 # include <sys/time.h>
-# include <time.h>
-#else
-# ifdef HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
 #endif
 
 #include <limits.h>
@@ -1138,7 +1147,7 @@ year_2050_test ()
 }
 
 int
-main ()
+main (void)
 {
   time_t t, delta;
   int i, j;
@@ -1199,8 +1208,9 @@ AU_ALIAS([AM_FUNC_MKTIME], [AC_FUNC_MKTIME])
 # ------------
 AN_FUNCTION([mmap], [AC_FUNC_MMAP])
 AC_DEFUN([AC_FUNC_MMAP],
-[AC_CHECK_HEADERS_ONCE([stdlib.h unistd.h sys/param.h])
-AC_CHECK_FUNCS([getpagesize])
+[AC_REQUIRE([AC_CANONICAL_HOST])dnl for cross-compiles
+AC_CHECK_HEADERS_ONCE([unistd.h sys/param.h])
+AC_CHECK_FUNCS_ONCE([getpagesize])
 AC_CACHE_CHECK([for working mmap], [ac_cv_func_mmap_fixed_mapped],
 [AC_RUN_IFELSE([AC_LANG_SOURCE([AC_INCLUDES_DEFAULT]
 [[/* malloc might have been renamed as rpl_malloc. */
@@ -1230,10 +1240,6 @@ AC_CACHE_CHECK([for working mmap], [ac_cv_func_mmap_fixed_mapped],
 
 #include <fcntl.h>
 #include <sys/mman.h>
-
-#if !defined STDC_HEADERS && !defined HAVE_STDLIB_H
-char *malloc ();
-#endif
 
 /* This mess was copied from the GNU getpagesize.h.  */
 #ifndef HAVE_GETPAGESIZE
@@ -1268,7 +1274,7 @@ char *malloc ();
 #endif /* no HAVE_GETPAGESIZE */
 
 int
-main ()
+main (void)
 {
   char *data, *data2, *data3;
   const char *cdata2;
@@ -1340,7 +1346,12 @@ main ()
 }]])],
 	       [ac_cv_func_mmap_fixed_mapped=yes],
 	       [ac_cv_func_mmap_fixed_mapped=no],
-	       [ac_cv_func_mmap_fixed_mapped=no])])
+	       [case "$host_os" in # ((
+			  # Guess yes on platforms where we know the result.
+		  linux*) ac_cv_func_mmap_fixed_mapped=yes ;;
+			  # If we don't know, assume the worst.
+		  *)      ac_cv_func_mmap_fixed_mapped=no ;;
+		esac])])
 if test $ac_cv_func_mmap_fixed_mapped = yes; then
   AC_DEFINE([HAVE_MMAP], [1],
 	    [Define to 1 if you have a working `mmap' system call.])
@@ -1390,23 +1401,25 @@ AU_ALIAS([AM_FUNC_OBSTACK], [AC_FUNC_OBSTACK])
 # -------------------------------------
 # If `realloc (0, 0)' is properly handled, run IF-WORKS, otherwise, IF-NOT.
 AC_DEFUN([_AC_FUNC_REALLOC_IF],
-[AC_REQUIRE([AC_HEADER_STDC])dnl
-AC_CHECK_HEADERS(stdlib.h)
+[AC_REQUIRE([AC_CANONICAL_HOST])dnl for cross-compiles
 AC_CACHE_CHECK([for GNU libc compatible realloc], ac_cv_func_realloc_0_nonnull,
 [AC_RUN_IFELSE(
 [AC_LANG_PROGRAM(
-[[#if defined STDC_HEADERS || defined HAVE_STDLIB_H
-# include <stdlib.h>
-#else
-char *realloc ();
-#endif
+[[#include <stdlib.h>
 ]],
 		 [return ! realloc (0, 0);])],
 	       [ac_cv_func_realloc_0_nonnull=yes],
 	       [ac_cv_func_realloc_0_nonnull=no],
-	       [ac_cv_func_realloc_0_nonnull=no])])
+	       [case "$host_os" in # ((
+		  # Guess yes on platforms where we know the result.
+		  *-gnu* | freebsd* | netbsd* | openbsd* | bitrig* \
+		  | hpux* | solaris* | cygwin* | mingw*)
+		    ac_cv_func_realloc_0_nonnull=yes ;;
+		  # If we don't know, assume the worst.
+		  *) ac_cv_func_realloc_0_nonnull=no ;;
+		esac])])
 AS_IF([test $ac_cv_func_realloc_0_nonnull = yes], [$1], [$2])
-])# AC_FUNC_REALLOC
+])# _AC_FUNC_REALLOC_IF
 
 
 # AC_FUNC_REALLOC
@@ -1432,7 +1445,7 @@ AC_DEFUN([AC_FUNC_REALLOC],
 # function's arguments, and define those types in `SELECT_TYPE_ARG1',
 # `SELECT_TYPE_ARG234', and `SELECT_TYPE_ARG5'.
 AC_DEFUN([AC_FUNC_SELECT_ARGTYPES],
-[AC_CHECK_HEADERS(sys/select.h sys/socket.h)
+[AC_CHECK_HEADERS_ONCE([sys/select.h sys/socket.h])
 AC_CACHE_CHECK([types of arguments for select],
 [ac_cv_func_select_args],
 [for ac_arg234 in 'fd_set *' 'int *' 'void *'; do
@@ -1468,7 +1481,7 @@ AC_DEFINE_UNQUOTED(SELECT_TYPE_ARG234, ($[2]),
 		   [Define to the type of args 2, 3 and 4 for `select'.])
 AC_DEFINE_UNQUOTED(SELECT_TYPE_ARG5, ($[3]),
 		   [Define to the type of arg 5 for `select'.])
-rm -f conftest*
+rm -rf conftest*
 ])# AC_FUNC_SELECT_ARGTYPES
 
 
@@ -1476,15 +1489,13 @@ rm -f conftest*
 # ---------------
 AC_DEFUN([AC_FUNC_SETPGRP],
 [AC_CACHE_CHECK(whether setpgrp takes no argument, ac_cv_func_setpgrp_void,
-[AC_RUN_IFELSE(
-[AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT],
-[/* If this system has a BSD-style setpgrp which takes arguments,
-  setpgrp(1, 1) will fail with ESRCH and return -1, in that case
-  exit successfully. */
-  return setpgrp (1,1) != -1;])],
-	       [ac_cv_func_setpgrp_void=no],
-	       [ac_cv_func_setpgrp_void=yes],
-	       [AC_MSG_ERROR([cannot check setpgrp when cross compiling])])])
+   [AC_COMPILE_IFELSE(
+      [AC_LANG_PROGRAM(
+	 [[#include <unistd.h>
+	   static int (*p) (void) = setpgrp;]],
+	 [[return setpgrp ();]])],
+      [ac_cv_func_setpgrp_void=yes],
+      [ac_cv_func_setpgrp_void=no])])
 if test $ac_cv_func_setpgrp_void = yes; then
   AC_DEFINE(SETPGRP_VOID, 1,
 	    [Define to 1 if the `setpgrp' function takes no argument.])
@@ -1551,7 +1562,7 @@ AC_CACHE_CHECK(for working strtod, ac_cv_func_strtod,
 double strtod ();
 #endif
 int
-main()
+main (void)
 {
   {
     /* Some versions of Linux strtod mis-parse strings with leading '+'.  */
@@ -1623,8 +1634,8 @@ AU_ALIAS([AM_FUNC_STRTOD], [AC_FUNC_STRTOD])
 # ------------------
 AN_FUNCTION([strerror_r], [AC_FUNC_STRERROR_R])
 AC_DEFUN([AC_FUNC_STRERROR_R],
-[AC_CHECK_DECLS([strerror_r])
-AC_CHECK_FUNCS([strerror_r])
+[AC_CHECK_DECLS_ONCE([strerror_r])
+AC_CHECK_FUNCS_ONCE([strerror_r])
 AC_CACHE_CHECK([whether strerror_r returns char *],
 	       ac_cv_func_strerror_r_char_p,
    [
@@ -1723,14 +1734,20 @@ AU_ALIAS([AC_SETVBUF_REVERSED], [AC_FUNC_SETVBUF_REVERSED])
 # ---------------
 AN_FUNCTION([strcoll], [AC_FUNC_STRCOLL])
 AC_DEFUN([AC_FUNC_STRCOLL],
-[AC_CACHE_CHECK(for working strcoll, ac_cv_func_strcoll_works,
+[AC_REQUIRE([AC_CANONICAL_HOST])dnl for cross-compiles
+AC_CACHE_CHECK(for working strcoll, ac_cv_func_strcoll_works,
 [AC_RUN_IFELSE([AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT],
   [[return (strcoll ("abc", "def") >= 0 ||
 	 strcoll ("ABC", "DEF") >= 0 ||
 	 strcoll ("123", "456") >= 0)]])],
 	       ac_cv_func_strcoll_works=yes,
 	       ac_cv_func_strcoll_works=no,
-	       ac_cv_func_strcoll_works=no)])
+	       [case "$host_os" in # ((
+			  # Guess yes on glibc systems.
+		  *-gnu*) ac_cv_func_strcoll_works=yes ;;
+			  # If we don't know, assume the worst.
+		  *)      ac_cv_func_strcoll_works=no ;;
+		esac])])
 if test $ac_cv_func_strcoll_works = yes; then
   AC_DEFINE(HAVE_STRCOLL, 1,
 	    [Define to 1 if you have the `strcoll' function and it is properly
@@ -1747,7 +1764,7 @@ AU_ALIAS([AC_STRCOLL], [AC_FUNC_STRCOLL])
 # AC_FUNC_UTIME_NULL
 # ------------------
 AC_DEFUN([AC_FUNC_UTIME_NULL],
-[AC_CHECK_HEADERS_ONCE(utime.h)
+[AC_CHECK_HEADERS_ONCE([utime.h])
 AC_CACHE_CHECK(whether utime accepts a null argument, ac_cv_func_utime_null,
 [rm -f conftest.data; >conftest.data
 # Sequent interprets utime(file, 0) to mean use start of epoch.  Wrong.
@@ -1785,8 +1802,8 @@ AN_FUNCTION([fork],  [AC_FUNC_FORK])
 AN_FUNCTION([vfork], [AC_FUNC_FORK])
 AC_DEFUN([AC_FUNC_FORK],
 [AC_REQUIRE([AC_TYPE_PID_T])dnl
-AC_CHECK_HEADERS(vfork.h)
-AC_CHECK_FUNCS(fork vfork)
+AC_CHECK_HEADERS_ONCE([vfork.h])
+AC_CHECK_FUNCS_ONCE([fork vfork])
 if test "x$ac_cv_func_fork" = xyes; then
   _AC_FUNC_FORK
 else
@@ -1846,10 +1863,18 @@ AC_DEFUN([_AC_FUNC_VFORK],
 [AC_CACHE_CHECK(for working vfork, ac_cv_func_vfork_works,
 [AC_RUN_IFELSE([AC_LANG_SOURCE([[/* Thanks to Paul Eggert for this test.  */
 ]AC_INCLUDES_DEFAULT[
+#include <signal.h>
 #include <sys/wait.h>
 #ifdef HAVE_VFORK_H
 # include <vfork.h>
 #endif
+
+static void
+do_nothing (int sig)
+{
+  (void) sig;
+}
+
 /* On some sparc systems, changes by the child to local and incoming
    argument registers are propagated back to the parent.  The compiler
    is told about this with #include <vfork.h>, but some compilers
@@ -1857,11 +1882,7 @@ AC_DEFUN([_AC_FUNC_VFORK],
    static variable whose address is put into a register that is
    clobbered by the vfork.  */
 static void
-#ifdef __cplusplus
 sparc_address_test (int arg)
-# else
-sparc_address_test (arg) int arg;
-#endif
 {
   static pid_t child;
   if (!child) {
@@ -1879,12 +1900,17 @@ sparc_address_test (arg) int arg;
 }
 
 int
-main ()
+main (void)
 {
   pid_t parent = getpid ();
   pid_t child;
 
   sparc_address_test (0);
+
+  /* On Solaris 2.4, changes by the child to the signal handler
+     also munge signal handlers in the parent.  To detect this,
+     start by putting the parent's handler in a known state.  */
+  signal (SIGTERM, SIG_DFL);
 
   child = vfork ();
 
@@ -1907,6 +1933,10 @@ main ()
 	|| p != p5 || p != p6 || p != p7)
       _exit(1);
 
+    /* Alter the child's signal handler.  */
+    if (signal (SIGTERM, do_nothing) != SIG_DFL)
+      _exit(1);
+
     /* On some systems (e.g. IRIX 3.3), vfork doesn't separate parent
        from child file descriptors.  If the child closes a descriptor
        before it execs or exits, this munges the parent's descriptor
@@ -1921,6 +1951,9 @@ main ()
     return (
 	 /* Was there some problem with vforking?  */
 	 child < 0
+
+	 /* Did the child munge the parent's signal handler?  */
+	 || signal (SIGTERM, SIG_DFL) != SIG_DFL
 
 	 /* Did the child fail?  (This shouldn't happen.)  */
 	 || status
@@ -1953,12 +1986,12 @@ AU_ALIAS([AC_VFORK], [AC_FUNC_FORK])
 # Why the heck is that _doprnt does not define HAVE__DOPRNT???
 # That the logical name!
 AC_DEFUN([AC_FUNC_VPRINTF],
-[AC_CHECK_FUNCS(vprintf, []
-[AC_CHECK_FUNC(_doprnt,
-	       [AC_DEFINE(HAVE_DOPRNT, 1,
+[AC_CHECK_FUNCS_ONCE([vprintf])
+AS_IF([test "x$ac_cv_func_vprintf" = xno],
+[AC_CHECK_FUNC([_doprnt],
+	       [AC_DEFINE([HAVE_DOPRNT], [1],
 			  [Define to 1 if you don't have `vprintf' but do have
-			  `_doprnt.'])])])
-])
+			  `_doprnt.'])])])])
 
 
 # AU::AC_VPRINTF
@@ -1985,7 +2018,7 @@ AC_CACHE_CHECK([for wait3 that fills in rusage],
 #include <sys/wait.h>
 /* HP-UX has wait3 but does not fill in rusage at all.  */
 int
-main ()
+main (void)
 {
   struct rusage r;
   int i;

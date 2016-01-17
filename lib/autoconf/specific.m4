@@ -1,7 +1,7 @@
 # This file is part of Autoconf.			-*- Autoconf -*-
 # Macros that test for specific, unclassified, features.
 #
-# Copyright (C) 1992-1996, 1998-2012 Free Software Foundation, Inc.
+# Copyright (C) 1992-1996, 1998-2015 Free Software Foundation, Inc.
 
 # This file is part of Autoconf.  This program is free
 # software; you can redistribute it and/or modify it under the
@@ -168,11 +168,8 @@ if test "$enable_largefile" != no; then
       [_AC_SYS_LARGEFILE_TEST_INCLUDES])
   fi
 
-  AH_VERBATIM([_DARWIN_USE_64_BIT_INODE],
-[/* Enable large inode numbers on Mac OS X 10.5.  */
-#ifndef _DARWIN_USE_64_BIT_INODE
-# define _DARWIN_USE_64_BIT_INODE 1
-#endif])
+  AC_DEFINE([_DARWIN_USE_64_BIT_INODE], [1],
+    [Enable large inode numbers on Mac OS X 10.5.])
 fi
 ])# AC_SYS_LARGEFILE
 
@@ -257,7 +254,7 @@ void ucatch (dummy) int dummy; { }
 #endif
 
 int
-main ()
+main (void)
 {
   int i = fork (), status;
 
@@ -372,13 +369,15 @@ AC_BEFORE([$0], [AC_RUN_IFELSE])dnl
   AC_CHECK_HEADER([minix/config.h], [MINIX=yes], [MINIX=])
   if test "$MINIX" = yes; then
     AC_DEFINE([_POSIX_SOURCE], [1],
-      [Define to 1 if you need to in order for `stat' and other
+      [Define to 1 if you need to in order for 'stat' and other
        things to work.])
     AC_DEFINE([_POSIX_1_SOURCE], [2],
       [Define to 2 if the system does not provide POSIX.1 features
        except with this defined.])
     AC_DEFINE([_MINIX], [1],
       [Define to 1 if on MINIX.])
+    AC_DEFINE([_NETBSD_SOURCE], [1],
+      [Define to 1 to make NetBSD features available.  MINIX 3 needs this.])
   fi
 
 dnl Use a different key than __EXTENSIONS__, as that name broke existing
@@ -387,6 +386,10 @@ dnl configure.ac when using autoheader 2.62.
 [/* Enable extensions on AIX 3, Interix.  */
 #ifndef _ALL_SOURCE
 # undef _ALL_SOURCE
+#endif
+/* Enable general extensions on OS X.  */
+#ifndef _DARWIN_C_SOURCE
+# undef _DARWIN_C_SOURCE
 #endif
 /* Enable GNU extensions on systems that have them.  */
 #ifndef _GNU_SOURCE
@@ -399,6 +402,12 @@ dnl configure.ac when using autoheader 2.62.
 /* Enable extensions on HP NonStop.  */
 #ifndef _TANDEM_SOURCE
 # undef _TANDEM_SOURCE
+#endif
+/* Enable X/Open extensions if necessary.  HP-UX 11.11 defines
+   mbstate_t only if _XOPEN_SOURCE is defined to 500, regardless of
+   whether compiling with -Ae or -D_HPUX_SOURCE=1.  */
+#ifndef _XOPEN_SOURCE
+# undef _XOPEN_SOURCE
 #endif
 /* Enable general extensions on Solaris.  */
 #ifndef __EXTENSIONS__
@@ -416,9 +425,26 @@ dnl configure.ac when using autoheader 2.62.
   test $ac_cv_safe_to_define___extensions__ = yes &&
     AC_DEFINE([__EXTENSIONS__])
   AC_DEFINE([_ALL_SOURCE])
+  AC_DEFINE([_DARWIN_C_SOURCE])
   AC_DEFINE([_GNU_SOURCE])
   AC_DEFINE([_POSIX_PTHREAD_SEMANTICS])
   AC_DEFINE([_TANDEM_SOURCE])
+  AC_CACHE_CHECK([whether _XOPEN_SOURCE should be defined],
+    [ac_cv_should_define__xopen_source],
+    [ac_cv_should_define__xopen_source=no
+     AC_COMPILE_IFELSE(
+       [AC_LANG_PROGRAM([[
+          #include <wchar.h>
+          mbstate_t x;]])],
+       [],
+       [AC_COMPILE_IFELSE(
+          [AC_LANG_PROGRAM([[
+             #define _XOPEN_SOURCE 500
+             #include <wchar.h>
+             mbstate_t x;]])],
+          [ac_cv_should_define__xopen_source=yes])])])
+  test $ac_cv_should_define__xopen_source = yes &&
+    AC_DEFINE([_XOPEN_SOURCE], [500])
 ])# AC_USE_SYSTEM_EXTENSIONS
 
 

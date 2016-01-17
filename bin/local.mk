@@ -1,6 +1,6 @@
 # Make Autoconf commands.
 
-# Copyright (C) 1999-2007, 2009-2012 Free Software Foundation, Inc.
+# Copyright (C) 1999-2007, 2009-2015 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,52 +15,38 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-include ../lib/freeze.mk
+bin_SCRIPTS = \
+  bin/autoconf \
+  bin/autoheader \
+  bin/autom4te \
+  bin/autoreconf \
+  bin/autoscan \
+  bin/autoupdate \
+  bin/ifnames
 
-bin_SCRIPTS = autom4te \
-	      autoconf autoheader autoreconf ifnames autoscan autoupdate
-
-EXTRA_DIST = autoconf.as autoheader.in autoreconf.in autoupdate.in ifnames.in \
-	     autoscan.in autom4te.in
+EXTRA_DIST += \
+  bin/autoconf.as \
+  bin/autoheader.in \
+  bin/autom4te.in \
+  bin/autoreconf.in \
+  bin/autoscan.in \
+  bin/autoupdate.in \
+  bin/ifnames.in
 
 # Files that should be removed, but which Automake does not know.
-MOSTLYCLEANFILES = $(bin_SCRIPTS) autoconf.in *.tmp
-
-# Get the release year from ../ChangeLog.
-RELEASE_YEAR = \
-  `sed 's/^\([0-9][0-9][0-9][0-9]\).*/\1/;q' $(top_srcdir)/ChangeLog`
+MOSTLYCLEANFILES += $(bin_SCRIPTS) bin/autoconf.in bin/*.tmp
 
 ## ------------- ##
 ## The scripts.  ##
 ## ------------- ##
 
-edit = sed \
-	-e 's|@SHELL[@]|$(SHELL)|g' \
-	-e 's|@PERL[@]|$(PERL)|g' \
-	-e 's|@PERL_FLOCK[@]|$(PERL_FLOCK)|g' \
-	-e 's|@bindir[@]|$(bindir)|g' \
-	-e 's|@pkgdatadir[@]|$(pkgdatadir)|g' \
-	-e 's|@prefix[@]|$(prefix)|g' \
-	-e 's|@autoconf-name[@]|'`echo autoconf | sed '$(transform)'`'|g' \
-	-e 's|@autoheader-name[@]|'`echo autoheader | sed '$(transform)'`'|g' \
-	-e 's|@autom4te-name[@]|'`echo autom4te | sed '$(transform)'`'|g' \
-	-e 's|@M4[@]|$(M4)|g' \
-	-e 's|@M4_DEBUGFILE[@]|$(M4_DEBUGFILE)|g' \
-	-e 's|@M4_GNU[@]|$(M4_GNU)|g' \
-	-e 's|@AWK[@]|$(AWK)|g' \
-	-e 's|@RELEASE_YEAR[@]|'$(RELEASE_YEAR)'|g' \
-	-e 's|@VERSION[@]|$(VERSION)|g' \
-	-e 's|@PACKAGE_NAME[@]|$(PACKAGE_NAME)|g' \
-	-e 's|@configure_input[@]|Generated from $@.in; do not edit by hand.|g'
-
-$(top_builddir)/bin/autom4te: autom4te
-
 # autoconf is written in M4sh.
 # FIXME: this target should depend on the frozen files below lib/m4sugar,
 # otherwise autom4te may pick up a frozen m4sh.m4f from an earlier
 # installation below the same $(prefix); work around this with --melt.
-autoconf.in: $(srcdir)/autoconf.as $(m4sh_m4f_dependencies)
-	$(MY_AUTOM4TE) --language M4sh --cache '' --melt $(srcdir)/autoconf.as -o $@
+bin/autoconf.in: $(srcdir)/bin/autoconf.as $(m4sh_m4f_dependencies)
+	$(MY_AUTOM4TE) --language M4sh --cache '' \
+	  --melt $(srcdir)/bin/autoconf.as -o $@
 
 ## All the scripts depend on Makefile so that they are rebuilt when the
 ## prefix etc. changes.  It took quite a while to have the rule correct,
@@ -68,6 +54,7 @@ autoconf.in: $(srcdir)/autoconf.as $(m4sh_m4f_dependencies)
 ## Use chmod -w to prevent people from editing the wrong file by accident.
 $(bin_SCRIPTS): Makefile
 	rm -f $@ $@.tmp
+	$(MKDIR_P) $(@D)
 	srcdir=''; \
 	  test -f ./$@.in || srcdir=$(srcdir)/; \
 	  $(edit) $${srcdir}$@.in >$@.tmp
@@ -75,13 +62,13 @@ $(bin_SCRIPTS): Makefile
 	chmod a-w $@.tmp
 	mv $@.tmp $@
 
-autoconf: autoconf.in
-autoheader: $(srcdir)/autoheader.in
-autom4te: $(srcdir)/autom4te.in
-autoreconf: $(srcdir)/autoreconf.in
-autoscan: $(srcdir)/autoscan.in
-autoupdate: $(srcdir)/autoupdate.in
-ifnames: $(srcdir)/ifnames.in
+bin/autoconf: bin/autoconf.in
+bin/autoheader: $(srcdir)/bin/autoheader.in
+bin/autom4te: $(srcdir)/bin/autom4te.in
+bin/autoreconf: $(srcdir)/bin/autoreconf.in
+bin/autoscan: $(srcdir)/bin/autoscan.in
+bin/autoupdate: $(srcdir)/bin/autoupdate.in
+bin/ifnames: $(srcdir)/bin/ifnames.in
 
 
 ## --------------- ##
@@ -95,9 +82,13 @@ LETTERS = ABCDEFGHIJKLMNOPQRSTUVWXYZ
 DIGITS = 0123456789
 WORD_REGEXP = [$(LETTERS)$(letters)_][$(LETTERS)$(letters)$(DIGITS)_]*
 ETAGS_PERL = --lang=perl \
-  autoheader.in autoreconf.in autoupdate.in autoscan.in autom4te.in \
-  ifnames.in
+  bin/autoheader.in \
+  bin/autoreconf.in \
+  bin/autoupdate.in \
+  bin/autoscan.in \
+  bin/autom4te.in \
+  bin/ifnames.in
 ETAGS_SH = --lang=none --regex='/\($(WORD_REGEXP)\)=/\1/' \
-  autoconf.in
+  bin/autoconf.in
 
-ETAGS_ARGS = $(ETAGS_PERL) $(ETAGS_SH)
+ETAGS_ARGS += $(ETAGS_PERL) $(ETAGS_SH)
