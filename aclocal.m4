@@ -815,6 +815,9 @@ AC_SUBST([am__tar])
 AC_SUBST([am__untar])
 ]) # _AM_PROG_TAR
 
+<<<<<<< HEAD
 m4_include([m4/autobuild.m4])
+=======
+>>>>>>> origin/distrotech-autoconf-2.65
 m4_include([m4/m4.m4])
 m4_include([m4/make-case.m4])
