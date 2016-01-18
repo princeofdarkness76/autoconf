@@ -16,7 +16,12 @@
 
 # Make Autoconf documentation.
 
+<<<<<<< HEAD
 # Copyright (C) 2000-2003, 2007-2012 Free Software Foundation, Inc.
+=======
+# Copyright (C) 2000, 2001, 2002, 2003, 2007, 2008, 2009 Free Software
+# Foundation, Inc.
+>>>>>>> origin/distrotech-autoconf-2.65
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -92,6 +97,7 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
+<<<<<<< HEAD
 build_triplet = @build@
 host_triplet = @host@
 subdir = doc
@@ -102,6 +108,16 @@ ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/autobuild.m4 \
 	$(top_srcdir)/m4/m4.m4 $(top_srcdir)/m4/make-case.m4 \
 	$(top_srcdir)/configure.ac
+=======
+subdir = doc
+DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
+	$(autoconf_TEXINFOS) $(top_srcdir)/build-aux/mdate-sh \
+	$(srcdir)/version.texi $(srcdir)/stamp-vti \
+	$(standards_TEXINFOS)
+ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
+am__aclocal_m4_deps = $(top_srcdir)/m4/m4.m4 \
+	$(top_srcdir)/m4/make-case.m4 $(top_srcdir)/configure.ac
+>>>>>>> origin/distrotech-autoconf-2.65
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -149,6 +165,7 @@ AM_V_texidevnull = $(am__v_texidevnull_@AM_V@)
 am__v_texidevnull_ = $(am__v_texidevnull_@AM_DEFAULT_V@)
 am__v_texidevnull_0 = > /dev/null
 am__v_texidevnull_1 = 
+<<<<<<< HEAD
 INFO_DEPS = $(srcdir)/autoconf.info
 am__TEXINFO_TEX_DIR = $(srcdir)/../build-aux
 DVIS = autoconf.dvi
@@ -156,6 +173,15 @@ PDFS = autoconf.pdf
 PSS = autoconf.ps
 HTMLS = autoconf.html
 TEXINFOS = autoconf.texi
+=======
+INFO_DEPS = $(srcdir)/autoconf.info $(srcdir)/standards.info
+am__TEXINFO_TEX_DIR = $(srcdir)/../build-aux
+DVIS = autoconf.dvi standards.dvi
+PDFS = autoconf.pdf standards.pdf
+PSS = autoconf.ps standards.ps
+HTMLS = autoconf.html standards.html
+TEXINFOS = autoconf.texi standards.texi
+>>>>>>> origin/distrotech-autoconf-2.65
 TEXI2DVI = texi2dvi
 TEXI2PDF = $(TEXI2DVI) --pdf --batch
 MAKEINFOHTML = $(MAKEINFO) --html
@@ -254,22 +280,30 @@ am__leading_dot = @am__leading_dot@
 am__tar = @am__tar@
 am__untar = @am__untar@
 bindir = @bindir@
+<<<<<<< HEAD
 build = @build@
 build_alias = @build_alias@
 build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
+=======
+build_alias = @build_alias@
+>>>>>>> origin/distrotech-autoconf-2.65
 builddir = @builddir@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
+<<<<<<< HEAD
 host = @host@
 host_alias = @host_alias@
 host_cpu = @host_cpu@
 host_os = @host_os@
 host_vendor = @host_vendor@
+=======
+host_alias = @host_alias@
+>>>>>>> origin/distrotech-autoconf-2.65
 htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
@@ -297,8 +331,14 @@ top_srcdir = @top_srcdir@
 AM_MAKEINFOFLAGS = --no-split
 TEXI2HTML_FLAGS = -split_chapter
 TEXINFO_TEX = ../build-aux/texinfo.tex
+<<<<<<< HEAD
 info_TEXINFOS = autoconf.texi
 autoconf_TEXINFOS = fdl.texi install.texi
+=======
+info_TEXINFOS = autoconf.texi standards.texi
+autoconf_TEXINFOS = fdl.texi install.texi
+standards_TEXINFOS = fdl.texi gnu-oids.texi make-stds.texi
+>>>>>>> origin/distrotech-autoconf-2.65
 EXTRA_DIST = gendocs_template
 
 # Files from texi2dvi that should be removed, but which Automake does
@@ -409,6 +449,13 @@ mostlyclean-vti:
 
 maintainer-clean-vti:
 	-rm -f $(srcdir)/stamp-vti $(srcdir)/version.texi
+<<<<<<< HEAD
+=======
+$(srcdir)/standards.info: standards.texi $(standards_TEXINFOS)
+standards.dvi: standards.texi $(standards_TEXINFOS)
+standards.pdf: standards.texi $(standards_TEXINFOS)
+standards.html: standards.texi $(standards_TEXINFOS)
+>>>>>>> origin/distrotech-autoconf-2.65
 .dvi.ps:
 	$(AM_V_DVIPS)TEXINPUTS="$(am__TEXINFO_TEX_DIR)$(PATH_SEPARATOR)$$TEXINPUTS" \
 	$(DVIPS) $(AM_V_texinfo) -o $@ $<
@@ -490,11 +537,21 @@ dist-info: $(INFO_DEPS)
 	done
 
 mostlyclean-aminfo:
+<<<<<<< HEAD
 	-rm -rf autoconf.t2d autoconf.t2p
 
 clean-aminfo:
 	-test -z "autoconf.dvi autoconf.pdf autoconf.ps autoconf.html" \
 	|| rm -rf autoconf.dvi autoconf.pdf autoconf.ps autoconf.html
+=======
+	-rm -rf autoconf.t2d autoconf.t2p standards.t2d standards.t2p
+
+clean-aminfo:
+	-test -z "autoconf.dvi autoconf.pdf autoconf.ps autoconf.html standards.dvi \
+	  standards.pdf standards.ps standards.html" \
+	|| rm -rf autoconf.dvi autoconf.pdf autoconf.ps autoconf.html standards.dvi \
+	  standards.pdf standards.ps standards.html
+>>>>>>> origin/distrotech-autoconf-2.65
 
 maintainer-clean-aminfo:
 	@list='$(INFO_DEPS)'; for i in $$list; do \

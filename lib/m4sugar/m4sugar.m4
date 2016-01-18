@@ -3,7 +3,7 @@ divert(-1)#                                                  -*- Autoconf -*-
 # Base M4 layer.
 # Requires GNU M4.
 #
-# Copyright (C) 1999-2012 Free Software Foundation, Inc.
+# Copyright (C) 1999-2015 Free Software Foundation, Inc.
 
 # This file is part of Autoconf.  This program is free
 # software; you can redistribute it and/or modify it under the
@@ -2000,7 +2000,7 @@ m4_define([_m4_defun_once],
 
 # m4_pattern_forbid(ERE, [WHY])
 # -----------------------------
-# Declare that no token matching the forbidden extended regular
+# Declare that no token matching the forbidden perl extended regular
 # expression ERE should be seen in the output unless...
 m4_define([m4_pattern_forbid], [])
 
@@ -2008,7 +2008,7 @@ m4_define([m4_pattern_forbid], [])
 # m4_pattern_allow(ERE)
 # ---------------------
 # ... that token also matches the allowed extended regular expression ERE.
-# Both used via traces.
+# Both used via traces, by autom4te post-processing.
 m4_define([m4_pattern_allow], [])
 
 
@@ -2038,10 +2038,10 @@ m4_define([m4_before],
 # - NAME-TO-CHECK == BODY-TO-EXPAND
 #   Which you can use for regular macros with or without arguments, e.g.,
 #     m4_require([AC_PROG_CC], [AC_PROG_CC])
-#     m4_require([AC_CHECK_HEADERS(limits.h)], [AC_CHECK_HEADERS(limits.h)])
+#     m4_require([AC_CHECK_HEADERS(threads.h)], [AC_CHECK_HEADERS(threads.h)])
 #   which is just the same as
 #     m4_require([AC_PROG_CC])
-#     m4_require([AC_CHECK_HEADERS(limits.h)])
+#     m4_require([AC_CHECK_HEADERS(threads.h)])
 #
 # - BODY-TO-EXPAND == m4_indir([NAME-TO-CHECK])
 #   In the case of macros with irregular names.  For instance:
@@ -2080,13 +2080,19 @@ m4_if([$0], [m4_require], [[m4_defun]], [[AC_DEFUN]])['d macro])])]dnl
 #
 # This is called frequently, so minimize the number of macro invocations
 # by avoiding dnl and other overhead on the common path.
+# The use of a witness macro protecting the warning allows aclocal
+# to silence any warnings when probing for what macros are required
+# and must therefore be located, when using the Autoconf-without-aclocal-m4
+# autom4te language.  For more background, see:
+# https://lists.gnu.org/archive/html/automake-patches/2012-11/msg00035.html
 m4_define([_m4_require_call],
 [m4_pushdef([_m4_divert_grow], m4_decr(_m4_divert_grow))]dnl
 [m4_pushdef([_m4_diverting([$1])])m4_pushdef([_m4_diverting], [$1])]dnl
 [m4_divert_push(_m4_divert_grow, [-])]dnl
 [m4_if([$2], [], [$1], [$2])
 m4_provide_if([$1], [m4_set_remove([_m4_provide], [$1])],
-  [m4_warn([syntax], [$1 is m4_require'd but not m4_defun'd])])]dnl
+  [m4_ifndef([m4_require_silent_probe],
+    [m4_warn([syntax], [$1 is m4_require'd but not m4_defun'd])])])]dnl
 [_m4_divert_raw($3)_m4_undivert(_m4_divert_grow)]dnl
 [m4_divert_pop(_m4_divert_grow)_m4_popdef([_m4_divert_grow],
 [_m4_diverting([$1])], [_m4_diverting])])
@@ -3120,7 +3126,8 @@ m4_define([m4_set_empty],
 # guaranteed.  This is faster than the corresponding m4_foreach([VAR],
 #   m4_indir([m4_dquote]m4_set_listc([SET])), [ACTION])
 m4_define([m4_set_foreach],
-[m4_pushdef([$2])m4_set_map_sep([$1], [m4_define([$2],], [)$3])])
+[m4_pushdef([$2])m4_set_map_sep([$1],
+[m4_define([$2],], [)$3])m4_popdef([$2])])
 
 # m4_set_intersection(SET1, SET2)
 # -------------------------------

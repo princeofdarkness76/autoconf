@@ -14,7 +14,12 @@
 
 @SET_MAKE@
 
+<<<<<<< HEAD
 # Copyright (C) 2000-2012 Free Software Foundation, Inc.
+=======
+# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+# 2009 Free Software Foundation, Inc.
+>>>>>>> origin/distrotech-autoconf-2.65
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -31,7 +36,12 @@
 
 # Freeze M4 files.
 
+<<<<<<< HEAD
 # Copyright (C) 2002, 2004, 2006-2012 Free Software Foundation, Inc.
+=======
+# Copyright (C) 2002, 2004, 2006, 2007, 2008, 2009 Free Software
+# Foundation, Inc.
+>>>>>>> origin/distrotech-autoconf-2.65
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -108,15 +118,23 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
+<<<<<<< HEAD
 build_triplet = @build@
 host_triplet = @host@
+=======
+>>>>>>> origin/distrotech-autoconf-2.65
 DIST_COMMON = $(srcdir)/../lib/freeze.mk $(srcdir)/Makefile.in \
 	$(srcdir)/Makefile.am $(srcdir)/atlocal.in
 subdir = tests
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
+<<<<<<< HEAD
 am__aclocal_m4_deps = $(top_srcdir)/m4/autobuild.m4 \
 	$(top_srcdir)/m4/m4.m4 $(top_srcdir)/m4/make-case.m4 \
 	$(top_srcdir)/configure.ac
+=======
+am__aclocal_m4_deps = $(top_srcdir)/m4/m4.m4 \
+	$(top_srcdir)/m4/make-case.m4 $(top_srcdir)/configure.ac
+>>>>>>> origin/distrotech-autoconf-2.65
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -202,22 +220,30 @@ am__leading_dot = @am__leading_dot@
 am__tar = @am__tar@
 am__untar = @am__untar@
 bindir = @bindir@
+<<<<<<< HEAD
 build = @build@
 build_alias = @build_alias@
 build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
+=======
+build_alias = @build_alias@
+>>>>>>> origin/distrotech-autoconf-2.65
 builddir = @builddir@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
+<<<<<<< HEAD
 host = @host@
 host_alias = @host_alias@
 host_cpu = @host_cpu@
 host_os = @host_os@
 host_vendor = @host_vendor@
+=======
+host_alias = @host_alias@
+>>>>>>> origin/distrotech-autoconf-2.65
 htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
@@ -303,7 +329,10 @@ autoconf_m4f_dependencies = \
 	$(src_libdir)/autoconf/c.m4		\
 	$(src_libdir)/autoconf/fortran.m4	\
 	$(src_libdir)/autoconf/erlang.m4	\
+<<<<<<< HEAD
 	$(src_libdir)/autoconf/go.m4		\
+=======
+>>>>>>> origin/distrotech-autoconf-2.65
 	$(src_libdir)/autoconf/functions.m4	\
 	$(src_libdir)/autoconf/headers.m4	\
 	$(src_libdir)/autoconf/types.m4		\
@@ -338,7 +367,10 @@ TESTSUITE_GENERATED_AT = \
 	$(srcdir)/aclang.at \
 	$(srcdir)/acc.at \
 	$(srcdir)/acfortran.at \
+<<<<<<< HEAD
 	$(srcdir)/acgo.at \
+=======
+>>>>>>> origin/distrotech-autoconf-2.65
 	$(srcdir)/acgeneral.at \
 	$(srcdir)/acstatus.at \
 	$(srcdir)/acautoheader.at \
@@ -354,7 +386,11 @@ TESTSUITE_HAND_AT = \
 	suite.at \
 	m4sugar.at m4sh.at autotest.at \
 	base.at tools.at torture.at \
+<<<<<<< HEAD
 	compile.at c.at erlang.at fortran.at go.at \
+=======
+	compile.at c.at erlang.at fortran.at \
+>>>>>>> origin/distrotech-autoconf-2.65
 	semantics.at \
 	autoscan.at \
 	foreign.at
@@ -374,7 +410,11 @@ AUTOTEST = $(MY_AUTOM4TE) --language=autotest
 # includes $(TESTSUITE).  This is the Automake rule, plus our
 # dependency, and we silence the warning from 'automake -Wall' by
 # hiding the dependency behind a variable.
+<<<<<<< HEAD
 # TODO - fix this if newer automake accommodates the dependency.
+=======
+# TODO - fix this if newer automake accomodates the dependency.
+>>>>>>> origin/distrotech-autoconf-2.65
 distclean_generic = distclean-generic
 
 # The files which contain macros we check for syntax.  Use $(top_srcdir)
@@ -391,7 +431,10 @@ AUTOCONF_FILES = $(autoconfdir)/general.m4 \
 		 $(autoconfdir)/c.m4 \
 		 $(autoconfdir)/erlang.m4 \
 		 $(autoconfdir)/fortran.m4 \
+<<<<<<< HEAD
 		 $(autoconfdir)/go.m4 \
+=======
+>>>>>>> origin/distrotech-autoconf-2.65
 		 $(autoconfdir)/headers.m4 \
 		 $(autoconfdir)/libs.m4 \
 		 $(autoconfdir)/types.m4 \

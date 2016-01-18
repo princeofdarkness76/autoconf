@@ -1,4 +1,11 @@
+<<<<<<< HEAD
 @set UPDATED 30 January 2014
 @set UPDATED-MONTH January 2014
 @set EDITION 2.69
 @set VERSION 2.69
+=======
+@set UPDATED 14 December 2013
+@set UPDATED-MONTH December 2013
+@set EDITION 2.65
+@set VERSION 2.65
+>>>>>>> origin/distrotech-autoconf-2.65

@@ -2,7 +2,7 @@
 
 AT_BANNER([Executables (autoheader, autoupdate...).])
 
-# Copyright (C) 2000-2001, 2003-2004, 2006-2012 Free Software
+# Copyright (C) 2000-2001, 2003-2004, 2006-2015 Free Software
 # Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -357,6 +357,77 @@ AT_CHECK_AUTOCONF([[-t define:'$1' -i| sed -n '$p']],
 
 AT_CLEANUP
 
+
+# autoconf --trace: AC_CONFIG_MACRO_DIRS
+# --------------------------------------
+AT_SETUP([autoconf --trace: AC_CONFIG_MACRO_DIRS])
+AT_KEYWORDS([AC_CONFIG_MACRO_DIR AC_CONFIG_MACRO_DIR_TRACE])
+
+AT_DATA([configure.ac],
+[[AC_INIT
+AC_CONFIG_MACRO_DIR([dir1])
+AC_CONFIG_MACRO_DIRS([dir2 dir3 \
+dir4])
+AC_CONFIG_MACRO_DIRS([dir5])
+]])
+
+# Legacy tracing
+AT_CHECK_AUTOCONF([-t AC_CONFIG_MACRO_DIR], 0,
+[[configure.ac:2:AC_CONFIG_MACRO_DIR:dir1
+]])
+
+# Preferred tracing
+AT_CHECK_AUTOCONF([-t AC_CONFIG_MACRO_DIR_TRACE], 0,
+[[configure.ac:2:AC_CONFIG_MACRO_DIR_TRACE:dir1
+configure.ac:3:AC_CONFIG_MACRO_DIR_TRACE:dir2
+configure.ac:3:AC_CONFIG_MACRO_DIR_TRACE:dir3
+configure.ac:3:AC_CONFIG_MACRO_DIR_TRACE:dir4
+configure.ac:5:AC_CONFIG_MACRO_DIR_TRACE:dir5
+]])
+
+# Legacy macro can only be used once
+AT_DATA([configure.ac],
+[[AC_INIT
+AC_CONFIG_MACRO_DIR([dir1])
+AC_CONFIG_MACRO_DIR([dir2])
+]])
+AT_CHECK_AUTOCONF([], [1], [], [stderr])
+AT_CHECK([grep 'error: AC_CONFIG_MACRO_DIR can only be used once' stderr],
+[], [ignore])
+
+# Legacy macro must be used first, if present
+AT_DATA([configure.ac],
+[[AC_INIT
+AC_CONFIG_MACRO_DIRS([dir1])
+AC_CONFIG_MACRO_DIR([dir2])
+]])
+AT_CHECK_AUTOCONF([], [1], [], [stderr])
+AT_CHECK([grep 'error: AC_CONFIG_MACRO_DIR can only be used once' stderr],
+[], [ignore])
+
+# Only use the public macros
+AT_DATA([configure.ac],
+[[AC_INIT
+AC_CONFIG_MACRO_DIR_TRACE([dir1])
+]])
+AT_CHECK_AUTOCONF([], [1], [],
+[[configure.ac:2: error: Do not invoke AC_CONFIG_MACRO_DIR_TRACE directly
+configure.ac:2: the top level
+autom4te: m4 failed with exit status: 1
+]])
+
+# Legacy macro use is not required, but still gets traced
+AT_DATA([configure.ac],
+[[AC_INIT
+AC_CONFIG_MACRO_DIRS([dir1])
+AC_CONFIG_MACRO_DIRS([dir2])
+]])
+AT_CHECK_AUTOCONF([], [0], [], [])
+AT_CHECK_AUTOCONF([-t AC_CONFIG_MACRO_DIR], [0],
+[[configure.ac:2:AC_CONFIG_MACRO_DIR:dir1
+]])
+
+AT_CLEANUP
 
 
 ## ---------------------------- ##
@@ -884,7 +955,7 @@ AC_DEFUN([FOO], [$#])
 AU_ALIAS([BAZ],[FOO])
 test "FOO:FOO():FOO(x) BAZ:BAZ():BAZ(x)" = "0:1:1 0:1:1" || exit 1
 AC_PROG_CC
-AC_STDC_HEADERS
+AC_WORDS_BIGENDIAN
 AC_OUTPUT
 ]])
 
@@ -892,8 +963,8 @@ AC_OUTPUT
 AT_CHECK_AUTOUPDATE
 AT_CHECK_AUTOCONF
 AT_CHECK_CONFIGURE
-AT_CHECK([grep 'AC_HEADER_STDC[(]' configure.ac], 1, [ignore], [ignore])
-AT_CHECK([grep 'AC_HEADER_STDC' configure.ac], 0, [ignore], [ignore])
+AT_CHECK([grep 'AC_C_BIGENDIAN[(]' configure.ac], 1, [ignore], [ignore])
+AT_CHECK([grep 'AC_C_BIGENDIAN' configure.ac], 0, [ignore], [ignore])
 
 AT_CLEANUP
 
@@ -1135,7 +1206,7 @@ AT_SETUP([autoupdating with aclocal and m4@&t@_include])
 AT_CHECK([aclocal --version || exit 77], [], [ignore], [ignore])
 
 mkdir m4 aclocal
-AT_DATA([configure.in],
+AT_DATA([configure.ac],
 [[AC_INIT(x,0)
 AC_UNCHANGED_MACRO
 AC_OLD_MACRO
@@ -1169,7 +1240,7 @@ AT_CHECK([automake --version || exit 77], [], [stdout], [ignore])
 AT_CHECK([[grep '[1-9]\.[0-9]' stdout || exit 77]], [], [ignore])
 AT_CHECK([test ! -f $HOME/.autom4te.cfg || exit 77], [], [ignore], [ignore])
 
-AT_DATA([configure.in],
+AT_DATA([configure.ac],
 [[AC_INIT(GNU foo, 1.0)
 AM_INIT_AUTOMAKE
 AC_CONFIG_FILES([Makefile])
@@ -1190,7 +1261,7 @@ AT_CHECK([autoconf])
 
 # If this test fails due to missing entries in lib/autom4te.in, then
 # comparing the old and new requests is a good place to start debugging:
-cp autom4te.cache/requests old-requests
+sort autom4te.cache/requests >old-requests
 echo newer >newer
 $sleep # if `configure' is regenerated, we want it to be strictly newer,
        # to catch the error consistently.
@@ -1198,7 +1269,7 @@ AT_CHECK([aclocal], [], [], [ignore])
 AT_CHECK([automake --no-force --add-missing], [], [], [ignore])
 AT_CHECK([autoconf])
 AT_CHECK([test "`find configure -newer newer`" = "" ||
-	  { diff old-requests autom4te.cache/requests; exit 1; }],
+	  { sort autom4te.cache/requests | diff old-requests -; exit 1; }],
 	 [], [], [],
 	 [extract_version=['s/^[^0-9]*\([0-9][^ ]*\).*/\1/;q']
 	  automake_version=`automake --version | sed "$extract_version"`
@@ -1294,9 +1365,9 @@ do
   export TMPDIR
 
   # skip if we cannot create such a file or directory
-  AT_CHECK([mkdir "$dir" "$TMPDIR" && touch "$file.in" || exit 77])
+  AT_CHECK([mkdir "$dir" "$TMPDIR" && touch "$file.ac" || exit 77])
 
-  cat >"$file.in" <<'END'
+  cat >"$file.ac" <<'END'
 [AC_INIT(x,0)
 m4@&t@_include([foo.m4])
 AC_CONFIG_HEADERS([config.h:config.hin])
@@ -1307,20 +1378,20 @@ END
 [AC_DEFUN([AC_MACRO], [echo hi])]
 END
 
-  AT_CHECK_AUTOHEADER([-B "$dir" "$file.in"])
-  AT_CHECK_AUTOHEADER([--force -I "$dir" "$file.in"])
-  AT_CHECK_AUTOUPDATE([-B "$dir" "$file.in"])
-  AT_CHECK_AUTOUPDATE([--force -I "$dir" "$file.in"])
-  AT_CHECK_AUTOUPDATE([-B "$dir" - < "$file.in"], [], [ignore])
-  AT_CHECK_AUTOCONF([-B "$dir" -o "$file" "$file.in"])
-  AT_CHECK_AUTOCONF([-I "$dir" -o "$file" "$file.in"])
+  AT_CHECK_AUTOHEADER([-B "$dir" "$file.ac"])
+  AT_CHECK_AUTOHEADER([--force -I "$dir" "$file.ac"])
+  AT_CHECK_AUTOUPDATE([-B "$dir" "$file.ac"])
+  AT_CHECK_AUTOUPDATE([--force -I "$dir" "$file.ac"])
+  AT_CHECK_AUTOUPDATE([-B "$dir" - < "$file.ac"], [], [ignore])
+  AT_CHECK_AUTOCONF([-B "$dir" -o "$file" "$file.ac"])
+  AT_CHECK_AUTOCONF([-I "$dir" -o "$file" "$file.ac"])
   # In autoconf, these exercise a slightly different code path:
-  AT_CHECK_AUTOCONF([--prepend-include="$dir" -o "$file" "$file.in"])
-  AT_CHECK_AUTOCONF([--include="$dir" -o "$file" "$file.in"])
+  AT_CHECK_AUTOCONF([--prepend-include="$dir" -o "$file" "$file.ac"])
+  AT_CHECK_AUTOCONF([--include="$dir" -o "$file" "$file.ac"])
   AT_CHECK([autoscan -B "$dir"], [], [], [ignore])
   AT_CHECK([autoscan --force -I "$dir"], [], [], [ignore])
   # autoreconf requires a sane input file name.  Also, disable aclocal.
-  mv -f "$file.in" configure.in
+  mv -f "$file.ac" configure.ac
   AT_DATA([aclocal.m4])
   AT_CHECK([autoreconf -B "$dir"])
   AT_CHECK([autoreconf --force -I "$dir"])

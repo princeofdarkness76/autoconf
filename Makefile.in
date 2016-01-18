@@ -16,7 +16,12 @@
 
 # Make Autoconf.
 
+<<<<<<< HEAD
 # Copyright (C) 1999-2004, 2006-2012 Free Software Foundation, Inc.
+=======
+# Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008,
+# 2009 Free Software Foundation, Inc.
+>>>>>>> origin/distrotech-autoconf-2.65
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -93,13 +98,17 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
+<<<<<<< HEAD
 build_triplet = @build@
 host_triplet = @host@
+=======
+>>>>>>> origin/distrotech-autoconf-2.65
 subdir = .
 DIST_COMMON = INSTALL NEWS README AUTHORS ChangeLog \
 	$(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) COPYING THANKS \
 	TODO build-aux/config.guess build-aux/config.sub \
+<<<<<<< HEAD
 	build-aux/install-sh build-aux/mdate-sh build-aux/missing \
 	build-aux/texinfo.tex $(top_srcdir)/build-aux/config.guess \
 	$(top_srcdir)/build-aux/config.sub \
@@ -109,6 +118,14 @@ ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/autobuild.m4 \
 	$(top_srcdir)/m4/m4.m4 $(top_srcdir)/m4/make-case.m4 \
 	$(top_srcdir)/configure.ac
+=======
+	build-aux/install-sh build-aux/missing build-aux/texinfo.tex \
+	$(top_srcdir)/build-aux/install-sh \
+	$(top_srcdir)/build-aux/missing
+ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
+am__aclocal_m4_deps = $(top_srcdir)/m4/m4.m4 \
+	$(top_srcdir)/m4/make-case.m4 $(top_srcdir)/configure.ac
+>>>>>>> origin/distrotech-autoconf-2.65
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
@@ -236,9 +253,15 @@ am__relativize = \
     dir1=`echo "$$dir1" | sed -e "$$sed_rest"`; \
   done; \
   reldir="$$dir2"
+<<<<<<< HEAD
 DIST_ARCHIVES = $(distdir).tar.gz $(distdir).tar.xz
 GZIP_ENV = --best
 DIST_TARGETS = dist-xz dist-gzip
+=======
+DIST_ARCHIVES = $(distdir).tar.gz $(distdir).tar.bz2
+GZIP_ENV = --best
+DIST_TARGETS = dist-bzip2 dist-gzip
+>>>>>>> origin/distrotech-autoconf-2.65
 distuninstallcheck_listfiles = find . -type f -print
 am__distuninstallcheck_listfiles = $(distuninstallcheck_listfiles) \
   | sed 's|^\./|$(prefix)/|' | grep -v '$(infodir)/dir$$'
@@ -301,22 +324,30 @@ am__leading_dot = @am__leading_dot@
 am__tar = @am__tar@
 am__untar = @am__untar@
 bindir = @bindir@
+<<<<<<< HEAD
 build = @build@
 build_alias = @build_alias@
 build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
+=======
+build_alias = @build_alias@
+>>>>>>> origin/distrotech-autoconf-2.65
 builddir = @builddir@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
+<<<<<<< HEAD
 host = @host@
 host_alias = @host_alias@
 host_cpu = @host_cpu@
 host_os = @host_os@
 host_vendor = @host_vendor@
+=======
+host_alias = @host_alias@
+>>>>>>> origin/distrotech-autoconf-2.65
 htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
@@ -347,19 +378,27 @@ top_srcdir = @top_srcdir@
 # Rules in man/ use scripts from both bin/ and tests/, so *it* goes last.
 SUBDIRS = bin . lib doc tests man
 ACLOCAL_AMFLAGS = -I m4
+<<<<<<< HEAD
 EXTRA_DIST = ChangeLog.0 ChangeLog.1 ChangeLog.2 ChangeLog.3 \
+=======
+EXTRA_DIST = ChangeLog.0 ChangeLog.1 ChangeLog.2 \
+>>>>>>> origin/distrotech-autoconf-2.65
 	     BUGS COPYINGv3 COPYING.EXCEPTION \
 	     GNUmakefile maint.mk cfg.mk \
 	     build-aux/gendocs.sh \
 	     build-aux/git-version-gen \
 	     build-aux/announce-gen build-aux/gnupload \
+<<<<<<< HEAD
 	     build-aux/gitlog-to-changelog \
+=======
+>>>>>>> origin/distrotech-autoconf-2.65
 	     .prev-version .version
 
 AM_MAKEINFOFLAGS = --no-headers --no-validate --no-split
 @MAKE_CASE_SENSITIVE_TRUE@pkgdata_DATA = $(srcdir)/INSTALL
 @MAKE_CASE_SENSITIVE_TRUE@MAINTAINERCLEANFILES = $(srcdir)/INSTALL
 
+<<<<<<< HEAD
 # Don't leave blank line at end of file.
 @MAKE_CASE_SENSITIVE_TRUE@OMIT_TRAILING_EMPTY_LINES = '/^$$/H; /^$$/d; x; s/\n//p; s/\n*//; x'
 # Prefer 'plain quotes' over `makeinfo quotes'.
@@ -368,6 +407,8 @@ AM_MAKEINFOFLAGS = --no-headers --no-validate --no-split
 # Generate the ChangeLog from git history.
 gen_start_date = 2012-01-15 18:00:00 UTC
 
+=======
+>>>>>>> origin/distrotech-autoconf-2.65
 # Version string management.  There are two files to be aware of:
 # .tarball-version - present only in a distribution tarball, and not in
 #   a checked-out repository.  Created with contents that were learned at
@@ -624,7 +665,10 @@ distdir: $(DISTFILES)
 dist-gzip: distdir
 	tardir=$(distdir) && $(am__tar) | GZIP=$(GZIP_ENV) gzip -c >$(distdir).tar.gz
 	$(am__post_remove_distdir)
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/distrotech-autoconf-2.65
 dist-bzip2: distdir
 	tardir=$(distdir) && $(am__tar) | BZIP2=$${BZIP2--9} bzip2 -c >$(distdir).tar.bz2
 	$(am__post_remove_distdir)
@@ -632,6 +676,10 @@ dist-bzip2: distdir
 dist-lzip: distdir
 	tardir=$(distdir) && $(am__tar) | lzip -c $${LZIP_OPT--9} >$(distdir).tar.lz
 	$(am__post_remove_distdir)
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/distrotech-autoconf-2.65
 dist-xz: distdir
 	tardir=$(distdir) && $(am__tar) | XZ_OPT=$${XZ_OPT--e} xz -c >$(distdir).tar.xz
 	$(am__post_remove_distdir)
@@ -875,6 +923,7 @@ uninstall-am: uninstall-pkgdataDATA
 	pdf-am ps ps-am tags tags-am uninstall uninstall-am \
 	uninstall-pkgdataDATA
 
+<<<<<<< HEAD
 
 @MAKE_CASE_SENSITIVE_TRUE@$(srcdir)/INSTALL: $(top_srcdir)/doc/install.texi
 @MAKE_CASE_SENSITIVE_TRUE@	echo @firstparagraphindent insert				\
@@ -899,12 +948,21 @@ gen-ChangeLog:
 # with a proper one at distribution time.
 ChangeLog:
 	@echo dummy > $@
+=======
+@MAKE_CASE_SENSITIVE_TRUE@$(srcdir)/INSTALL: $(top_srcdir)/doc/install.texi
+@MAKE_CASE_SENSITIVE_TRUE@	$(MAKEINFO) $(AM_MAKEINFOFLAGS) $(MAKEINFOFLAGS) --plaintext -o $@ \
+@MAKE_CASE_SENSITIVE_TRUE@	  $(top_srcdir)/doc/install.texi
+>>>>>>> origin/distrotech-autoconf-2.65
 $(top_srcdir)/.version:
 	echo $(VERSION) > $@-t && mv $@-t $@
 
 # Arrange so that .tarball-version appears only in distribution tarballs,
 # never in a checked-out repository.
+<<<<<<< HEAD
 dist-hook: gen-ChangeLog
+=======
+dist-hook:
+>>>>>>> origin/distrotech-autoconf-2.65
 	echo $(VERSION) > $(distdir)/.tarball-version
 
 # Arrange to remove the symlink to GNUmakefile in VPATH builds.
